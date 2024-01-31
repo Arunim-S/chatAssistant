@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import dotenv from "dotenv";
 import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
-
+import axios from "axios";
 /**
  * Endpoint
  * @type {string}
@@ -18,18 +18,32 @@ const endpoint = import.meta.env.VITE_AZURE_OPENAI_ENDPOINT;
 const azureApiKey = import.meta.env.VITE_AZURE_OPENAI_KEY;
 
 /**
- * Prompts
+ * Request Data for API
  * @type {Array}
  */
-const messages = [
-  { role: "system", content: "You are a helpful assistant." },
-  { role: "user", content: "Does Azure OpenAI support customer managed keys?" },
-  {
-    role: "assistant",
-    content: "Yes, customer managed keys are supported by Azure OpenAI",
-  },
-  { role: "user", content: "Do other Azure AI services support this too" },
-];
+const requestData = {
+  messages: [
+    {
+      role: "system",
+      content: "You are an AI assistant that helps people find information.",
+    },
+  ],
+  max_tokens: 800,
+  temperature: 0.7,
+  frequency_penalty: 0,
+  presence_penalty: 0,
+  top_p: 0.95,
+  stop: null,
+};
+
+/**
+ * Headers for API
+ * @type {Object{}}
+ */
+const headers = {
+  "Content-Type": "application/json",
+  "api-key": azureApiKey,
+};
 
 /**
  * App
@@ -43,40 +57,29 @@ function App() {
    * Handle Search Item
    * @param {object[]} e handles the search item on trigger event
    */
-
   const handleSearchItem = (e) => {
     setSearchItem(e.target.value);
   };
 
-
+  async function getResponse(endpoint, requestData, headers) {
+    requestData = getRequestoData();
+    await axios
+      .post(endpoint, requestData, { headers })
+      .then((response) => {
+        console.log(response.data);
+        const data = response.data;
+        data&&data.choices.map((e)=>{
+          setRes(e.message.content)
+      })
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
 
   const handleSearch = async () => {
     try {
-      /**
-       * OpenAIClient
-       * @param {string} endpoint The endpoint of api at which we will hit to get the data
-       * @param {string} azureapikey The api key to access the gpt model
-       * @returns {object[]} returns a client object
-       */
-      const client = new OpenAIClient(
-        endpoint,
-        new AzureKeyCredential(azureApiKey)
-      );
-      /**
-       * Deployment Id
-       * @type {string}
-       */
-      const deploymentId = "DanielGPT4";
-      /**
-       * result
-       * @type {Object[]}
-       */
-      const result = await client.getCompletions(deploymentId, searchItem);
-      setRes(result);
-      console.log(result);
-      // for (const choice of result.choices) {
-      //   console.log(choice.message);
-      // }
+      await getResponse(endpoint, requestData, headers);
     } catch (err) {
       console.error(err);
     }
@@ -85,18 +88,22 @@ function App() {
   return (
     <div className="flex flex-col h-full w-full items-center justify-cneter">
       <h1 className="text-[2rem] p-8">Chat Assistant</h1>
-      <div className="flex w-full justify-around gap-12 h-[80vh] px-28">
-        <div className="flex flex-col w-1/2 border items-center justify-evenly gap-8 p-12 rounded-[2rem]">
+      <div className="flex w-full justify-around gap-12 h-[80vh]">
+        <div className="flex flex-col bg-gray-200 w-2/3 border items-center justify-evenly gap-8 p-12 rounded-[2rem]">
           <div className="flex flex-col gap-4">
             <h1 className="text-2xl text-center">Hi</h1>
             <p className="text-md">How may I help you?</p>
           </div>
-          <div className="flex flex-col items-center justify-center gap-8 w-10/12">
+          <div className="h-2/4 flex bg-white w-full rounded-[1rem]">
+          <h1 className="mx-auto p-4">Results</h1>
+              {res && <div>{res}</div>}
+          </div>
+          <div className="flex h-1/4 w-full flex-col items-center justify-center gap-8">
             <input
               placeholder="search anything here ..."
               onChange={handleSearchItem}
               value={searchItem}
-              className="p-4 border border-black rounded-[2rem] w-full"
+              className="p-4 shadow-lg rounded-[2rem] w-full"
               id="search"
             />
             <button
@@ -107,10 +114,10 @@ function App() {
             </button>
           </div>
         </div>
-        <div className="flex flex-col w-2/3 border items-center gap-8 p-12 rounded-[2rem]">
+        {/* <div className="flex flex-col w-2/3 border items-center gap-8 p-12 rounded-[2rem]">
           <h1>Results</h1>
-          {res && <div>{res.content}</div>}
-        </div>
+          {res && <div>{res}</div>}
+        </div> */}
       </div>
     </div>
   );
