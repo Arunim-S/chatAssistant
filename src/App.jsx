@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
@@ -18,25 +18,6 @@ const endpoint = import.meta.env.VITE_AZURE_OPENAI_ENDPOINT;
 const azureApiKey = import.meta.env.VITE_AZURE_OPENAI_KEY;
 
 /**
- * Request Data for API
- * @type {Array}
- */
-const requestData = {
-  messages: [
-    {
-      role: "system",
-      content: "You are an AI assistant that helps people find information.",
-    },
-  ],
-  max_tokens: 800,
-  temperature: 0.7,
-  frequency_penalty: 0,
-  presence_penalty: 0,
-  top_p: 0.95,
-  stop: null,
-};
-
-/**
  * Headers for API
  * @type {Object{}}
  */
@@ -46,40 +27,89 @@ const headers = {
 };
 
 /**
- * App
+ * APP Function
  * @type {Function}
  */
 function App() {
   const [searchItem, setSearchItem] = useState("");
+  const [messages, setMessages] = useState([]);
   const [res, setRes] = useState("");
+  const messagesEndRef = useRef(null);
 
   /**
-   * Handle Search Item
-   * @param {object[]} e handles the search item on trigger event
+   * Handle search item
+   * @type {Function}
    */
   const handleSearchItem = (e) => {
     setSearchItem(e.target.value);
   };
+  /**
+   * Add message
+   * @type {Function}
+   */
+  const addMessage = (content, sender) => {
+    setMessages((prevMessages) => [...prevMessages, { content, sender }]);
+  };
 
+  /**
+   * scroll to see messages to bottom
+   * @type {Function}
+   */
+  const scrollToBottom = () => {
+    messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  /**
+   * get the response
+   * @type {Function}
+   * @param {string} endpoint
+   * @param {Object{}} requestdata
+   * @param {Object{}} headers
+   */
   async function getResponse(endpoint, requestData, headers) {
-    requestData = getRequestoData();
     await axios
       .post(endpoint, requestData, { headers })
       .then((response) => {
-        console.log(response.data);
         const data = response.data;
-        data&&data.choices.map((e)=>{
-          setRes(e.message.content)
-      })
+        data &&
+          data.choices.map((e) => {
+            setRes(e.message.content);
+            addMessage(e.message.content, "system");
+          });
       })
       .catch((error) => {
         console.error(error);
       });
   }
 
+  /**
+   * Handle Search
+   * @type {Function}
+   */
+
   const handleSearch = async () => {
     try {
+      const requestData = {
+        messages: [
+          {
+            role: "system",
+            content: searchItem,
+          },
+        ],
+        max_tokens: 800,
+        temperature: 0.7,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        top_p: 0.95,
+        stop: null,
+      };
       await getResponse(endpoint, requestData, headers);
+      addMessage(searchItem, "user");
+      setSearchItem("");
     } catch (err) {
       console.error(err);
     }
@@ -94,9 +124,18 @@ function App() {
             <h1 className="text-2xl text-center">Hi</h1>
             <p className="text-md">How may I help you?</p>
           </div>
-          <div className="h-2/4 flex bg-white w-full rounded-[1rem]">
-          <h1 className="mx-auto p-4">Results</h1>
-              {res && <div>{res}</div>}
+          <div className="h-2/4 flex flex-col bg-white w-full rounded-[1rem] overflow-y-auto p-4">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex gap-2 m-2 message ${
+                  message.sender === "system" ? "system" : "user"
+                }`}
+              >
+                <span className="bg-gray-300 p-4 rounded-[2rem]">{message.sender}: {message.content}</span>
+              </div>
+            ))}
+            <div ref={messagesEndRef}></div>
           </div>
           <div className="flex h-1/4 w-full flex-col items-center justify-center gap-8">
             <input
@@ -114,10 +153,6 @@ function App() {
             </button>
           </div>
         </div>
-        {/* <div className="flex flex-col w-2/3 border items-center gap-8 p-12 rounded-[2rem]">
-          <h1>Results</h1>
-          {res && <div>{res}</div>}
-        </div> */}
       </div>
     </div>
   );
