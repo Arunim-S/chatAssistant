@@ -1,43 +1,36 @@
-import React from "react";
-import { useMsal } from "@azure/msal-react";
+// AuthPage.jsx
+import React, { useState } from 'react';
 
-/**
- * Auth component
- * @type {Function}
- */
-const AuthButton = () => {
-  const { instance, accounts } = useMsal();
+const AuthPage = ({ instance }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  /**
-   *  Handle Login
-   * @type {Function}
-   */
-  const handleLogin = () => {
-    instance.loginPopup().then((response) => {
-      console.log(response);
-    });
-    // instance.loginRedirect();
-    // console.log("loggedin")
+  const handleLogin = async () => {
+    try {
+      const loginResponse = await instance.loginPopup();
+      // Handle successful login
+      console.log('Login response:', loginResponse);
+      setIsAuthenticated(true);
+    } catch (error) {
+      // Handle login failure
+      console.error('Login error:', error);
+    }
   };
-  /**
-   *  Handle Logout
-   * @type {Function}
-   */
+
   const handleLogout = () => {
-    instance.logoutPopup({ account: accounts[0] }).then((response) => {
-      console.log(response);
-    });
+    instance.logout();
+    setIsAuthenticated(false);
   };
 
   return (
     <div>
-      {accounts.length === 0 ? (
-        <button onClick={handleLogin}>Login</button>
-      ) : (
+      <h1>{isAuthenticated ? 'Authenticated' : 'Not Authenticated'}</h1>
+      {isAuthenticated ? (
         <button onClick={handleLogout}>Logout</button>
+      ) : (
+        <button onClick={handleLogin}>Login</button>
       )}
     </div>
   );
 };
 
-export default AuthButton;
+export default AuthPage;
