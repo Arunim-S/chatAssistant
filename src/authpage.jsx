@@ -17,6 +17,7 @@ const AuthPage = ({ instance }) => {
     try {
       const loginResponse = await instance.loginPopup();
       console.log('Login response:', loginResponse);
+      
 
       if (loginResponse && loginResponse.account && loginResponse.account.name) {
         console.log('User details:', loginResponse.account);

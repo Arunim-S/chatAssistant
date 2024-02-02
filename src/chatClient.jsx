@@ -4,11 +4,22 @@ import axios from "axios";
 import { CosmosClient } from "@azure/cosmos";
 
 class Message {
-  constructor(userId, userName, content, sender) {
+  constructor(userName, question, answer, timestamp, questiontype, persona) {
+    this.userName = userName;
+    this.question = question;
+    this.answer = answer;
+    this.timestamp = timestamp;
+    this.questiontype = questiontype;
+    this.persona = persona;
+  }
+}
+
+class UserData {
+  constructor(userId, userName, questions, timestamp) {
     this.userId = userId;
     this.userName = userName;
-    this.content = content;
-    this.sender = sender;
+    this.questions = questions;
+    this.timestamp = timestamp;
   }
 }
 
@@ -41,7 +52,6 @@ const clientCosmos = new CosmosClient(connection_string);
  * @type {Object{}}
  */
 const container = clientCosmos.database("Testing_Purpose").container("test");
-console.log(container);
 /**
  * Endpoint
  * @type {string}
@@ -63,28 +73,75 @@ const headers = {
   "api-key": azureApiKey,
 };
 
+const userName = localStorage.getItem("userName");
+
 const chatClient = () => {
+  const [loading, setLoading] = useState(true);
   const [searchItem, setSearchItem] = useState("");
   const [messages, setMessages] = useState([]);
-  const [res, setRes] = useState("");
+  const [userData, setUserData] = useState([]);
   const messagesEndRef = useRef(null);
+
+  const getMessagesFromCosmosDB = async () => {
+    try {
+      const { resources } = await container.items.readAll().fetchAll();
+      let isUser = false;
+
+      resources.map((e) => {
+        if (Object.values(e).includes(userName)) {
+          isUser = true;
+          setUserData(e);
+          setMessages(e.questions);
+        }
+      });
+      if (isUser === false) {
+        const questions = [];
+        const timestamp = new Date();
+        const userId = generateRandomUserId();
+        const user = new UserData(userId, userName, questions, timestamp);
+        await container.items.create(user);
+      }
+      const retrievedUsers = resources.map((item) => ({
+        userName: item.userName,
+      }));
+    } catch (error) {
+      console.error("Error retrieving messages from Cosmos DB:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    getMessagesFromCosmosDB();
+  }, []);
 
   /**
    *  Generate a random user ID
    *  @type {Function}
    * */
   const generateRandomUserId = () => {
-    return Math.random().toString(36).substr(2, 9);
+    return Math.random().toString(36).substr(2, 8);
   };
 
   /**
    *  Save Message to the container
    *  @type {Function}
    * */
-  const saveMessage = async (userName, content, sender) => {
-    const userId = generateRandomUserId();
-    const message = new Message(userId, userName, content, sender);
-    await container.items.create(message);
+  const saveMessage = async (userName, answer, question, persona, userData) => {
+    const timestamp = new Date();
+    const questionType = "New Chat";
+    const message = new Message(
+      userName,
+      question,
+      answer,
+      timestamp,
+      questionType,
+      persona
+    );
+    const arr = userData.questions;
+    arr.push(message);
+    await container.items.upsert(userData);
   };
 
   /**
@@ -98,8 +155,11 @@ const chatClient = () => {
    * Add message
    * @type {Function}
    */
-  const addMessage = (content, sender) => {
-    setMessages((prevMessages) => [...prevMessages, { content, sender }]);
+  const addMessage = (userName, answer, question, persona, userData) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { userName, answer, question, persona, userData },
+    ]);
   };
 
   /**
@@ -122,19 +182,20 @@ const chatClient = () => {
    * @param {Object{}} headers
    */
   async function getResponse(endpoint, requestData, headers) {
-    await axios
+    let output = ""
+    let res = await axios
       .post(endpoint, requestData, { headers })
       .then((response) => {
         const data = response.data;
         data &&
           data.choices.map((e) => {
-            setRes(e.message.content);
-            addMessage(e.message.content, "system");
+            output  = e.message.content;
           });
       })
       .catch((error) => {
         console.error(error);
       });
+    return output;
   }
 
   /**
@@ -143,10 +204,6 @@ const chatClient = () => {
    */
   const handleSearch = async () => {
     try {
-      /**
-       * Request Data
-       * @type {Object{}}
-       */
       const requestData = {
         messages: [
           {
@@ -161,34 +218,68 @@ const chatClient = () => {
         top_p: 0.95,
         stop: null,
       };
-
-      await getResponse(endpoint, requestData, headers);
-      await saveMessage("Anonymous", searchItem, "user");
-      addMessage(searchItem, "user");
+  
+      const response = await getResponse(endpoint, requestData, headers);  
+      const timestamp = new Date();
+      const questionType = "New Chat";
+  
+      const newMessage = new Message(
+        userName,
+        searchItem,
+        response,
+        timestamp,
+        questionType,
+        "Assistant"
+      );
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+  
+      const updatedUserData = { ...userData };
+      updatedUserData.questions = [...userData.questions, newMessage];
+  
+      await container.items.upsert(updatedUserData);
+  
       setSearchItem("");
     } catch (err) {
       console.error(err);
     }
   };
-
+    /**
+   * Handle Search
+   * @param {string} index
+   * @type {Function}
+   */
+  const handleDelete = async (index) => {
+    const updatedMessages = [...messages];
+    updatedMessages.splice(index, 1);
+  
+    setMessages(updatedMessages);
+  
+    const updatedUserData = { ...userData };
+    updatedUserData.questions = updatedMessages;
+    setUserData(updatedUserData);
+  
+    await container.items.upsert(updatedUserData);
+  };
+  
   return (
     <div className="flex flex-col h-screen w-full items-center justify-cneter">
       <div className="flex w-full gap-12 h-full">
         <div className="flex flex-col bg-gray-200 w-full h-full border gap-4 p-12">
           <h1 className="text-[2rem] text-center w-full">Chat Assistant</h1>
           <div className="gap-4 h-full flex flex-col">
-            <div className="flex flex-col bg-white w-full h-full rounded-[1rem] overflow-y-scroll p-4">
+            <div className="flex flex-col bg-white w-full h-[75vh] rounded-[1rem] overflow-y-scroll p-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex gap-2 m-2 message ${
-                    message.sender === "user"
-                      ? "items-end justify-end"
-                      : "items-start"
-                  }`}
+                  className="flex flex-col gap-2 m-2 message"
                 >
-                  <span className="bg-gray-300 ease-in-out transition-all p-4 max-w-md rounded-[2rem]">
-                    {message.content}
+                  {index+1}
+                  <button className="text-center w-32" onClick={() => handleDelete(index)}>remove</button>
+                  <span className="bg-gray-200 ease-in-out transition-all p-4 max-w-md rounded-[2rem]">
+                    {message.answer}
+                  </span>
+                  <span className="bg-gray-200 ease-in-out transition-all p-4 max-w-md rounded-[2rem]">
+                    {message.question}
                   </span>
                 </div>
               ))}
