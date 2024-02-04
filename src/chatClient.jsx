@@ -111,7 +111,6 @@ const chatClient = () => {
     }
   };
 
-
   useEffect(() => {
     getMessagesFromCosmosDB();
   }, []);
@@ -182,14 +181,14 @@ const chatClient = () => {
    * @param {Object{}} headers
    */
   async function getResponse(endpoint, requestData, headers) {
-    let output = ""
+    let output = "";
     let res = await axios
       .post(endpoint, requestData, { headers })
       .then((response) => {
         const data = response.data;
         data &&
           data.choices.map((e) => {
-            output  = e.message.content;
+            output = e.message.content;
           });
       })
       .catch((error) => {
@@ -218,11 +217,11 @@ const chatClient = () => {
         top_p: 0.95,
         stop: null,
       };
-  
-      const response = await getResponse(endpoint, requestData, headers);  
+
+      const response = await getResponse(endpoint, requestData, headers);
       const timestamp = new Date();
       const questionType = "New Chat";
-  
+
       const newMessage = new Message(
         userName,
         searchItem,
@@ -232,18 +231,18 @@ const chatClient = () => {
         "Assistant"
       );
       setMessages((prevMessages) => [...prevMessages, newMessage]);
-  
+
       const updatedUserData = { ...userData };
       updatedUserData.questions = [...userData.questions, newMessage];
-  
+
       await container.items.upsert(updatedUserData);
-  
+
       setSearchItem("");
     } catch (err) {
       console.error(err);
     }
   };
-    /**
+  /**
    * Handle Search
    * @param {string} index
    * @type {Function}
@@ -251,16 +250,16 @@ const chatClient = () => {
   const handleDelete = async (index) => {
     const updatedMessages = [...messages];
     updatedMessages.splice(index, 1);
-  
+
     setMessages(updatedMessages);
-  
+
     const updatedUserData = { ...userData };
     updatedUserData.questions = updatedMessages;
     setUserData(updatedUserData);
-  
+
     await container.items.upsert(updatedUserData);
   };
-  
+
   return (
     <div className="flex flex-col h-screen w-full items-center justify-cneter">
       <div className="flex w-full gap-12 h-full">
@@ -269,12 +268,14 @@ const chatClient = () => {
           <div className="gap-4 h-full flex flex-col">
             <div className="flex flex-col bg-white w-full h-[75vh] rounded-[1rem] overflow-y-scroll p-4">
               {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col gap-2 m-2 message"
-                >
-                  {index+1}
-                  <button className="text-center w-32" onClick={() => handleDelete(index)}>remove</button>
+                <div key={index} className="flex flex-col gap-2 m-2 message">
+                  {index + 1}
+                  <button
+                    className="text-center w-32"
+                    onClick={() => handleDelete(index)}
+                  >
+                    remove
+                  </button>
                   <span className="bg-gray-200 ease-in-out transition-all p-4 max-w-md rounded-[2rem]">
                     {message.answer}
                   </span>
