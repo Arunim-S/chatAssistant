@@ -3,12 +3,10 @@ import React, { useState, useEffect } from "react";
 import ChatClient from "./chatClient";
 
 const AuthPage = ({ instance }) => {
-  const [sessionData, setSessionData] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(
     localStorage.getItem("isAuthenticated") === "true"
   );
   const [userName, setUserName] = useState("");
-  const [session, setSession] = useState(0);
   useEffect(() => {
     setIsAuthenticated(localStorage.getItem("isAuthenticated") === "true");
     setUserName(localStorage.getItem("userName"));
@@ -43,37 +41,36 @@ const AuthPage = ({ instance }) => {
     setIsAuthenticated(false);
     localStorage.removeItem("isAuthenticated");
   };
-  console.log(sessionData);
   return (
     <div className="flex flex-col items-center justify-center gap-8 w-screen h-screen">
       {isAuthenticated ? (
-        <div className="flex flex-row w-full h-full">
-          <div className="w-1/6 bg-black justify-center flex">
-            <div className="flex flex-col items-center w-full gap-3">
-              <h1 className="flex text-center text-white mt-8 py-4">
+        <div className="flex flex-row justify-end w-full h-full">
+          {/* auth */}
+          <div className="absolute flex w-full justify-end px-20 items-center z-50 text-black">
+            <div className="flex flex-row h-12 items-center justify-center gap-3">
+              <h1 className="flex text-center">
                 {isAuthenticated
-                  ? "Welcome " + userName
+                  ? "Welcome " + userName + " !"
                   : "Please log in to access the chat assistant!"}
               </h1>
               <button
-                className=" bg-red-300 rounded-[2rem] mb-4 p-4 w-32 mx-auto h-10 items-center justify-center flex"
+                className="bg-red-300 rounded-[2rem] p-2 mx-auto items-center justify-center flex"
                 onClick={handleLogout}
               >
-                Logout
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000" height="24px" width="24px" version="1.1" id="Capa_1" viewBox="0 0 490.3 490.3" xml:space="preserve">
+                  <g>
+                    <g>
+                      <path d="M0,121.05v248.2c0,34.2,27.9,62.1,62.1,62.1h200.6c34.2,0,62.1-27.9,62.1-62.1v-40.2c0-6.8-5.5-12.3-12.3-12.3    s-12.3,5.5-12.3,12.3v40.2c0,20.7-16.9,37.6-37.6,37.6H62.1c-20.7,0-37.6-16.9-37.6-37.6v-248.2c0-20.7,16.9-37.6,37.6-37.6h200.6    c20.7,0,37.6,16.9,37.6,37.6v40.2c0,6.8,5.5,12.3,12.3,12.3s12.3-5.5,12.3-12.3v-40.2c0-34.2-27.9-62.1-62.1-62.1H62.1    C27.9,58.95,0,86.75,0,121.05z"/>
+                      <path d="M385.4,337.65c2.4,2.4,5.5,3.6,8.7,3.6s6.3-1.2,8.7-3.6l83.9-83.9c4.8-4.8,4.8-12.5,0-17.3l-83.9-83.9    c-4.8-4.8-12.5-4.8-17.3,0s-4.8,12.5,0,17.3l63,63H218.6c-6.8,0-12.3,5.5-12.3,12.3c0,6.8,5.5,12.3,12.3,12.3h229.8l-63,63    C380.6,325.15,380.6,332.95,385.4,337.65z"/>
+                    </g>
+                  </g>
+                  </svg>
               </button>
-              <div className="text-center p-4 gap-2 flex flex-col bg-black text-white w-full h-full">
-                <p className="p-2">Chat Sessions</p>
-                {sessionData &&
-                  sessionData.map((session, index) => (
-                    <button onClick={(e)=>{setSession(index)}} key={index} className="text-black p-4 bg-gray-200 w-full rounded-xl">
-                      Session {index+1}
-                    </button>
-                  ))}
-              </div>
             </div>
           </div>
-          <div className="flex w-5/6">
-            <ChatClient setSessionData={setSessionData} session={session}></ChatClient>
+          {/* chat client */}
+          <div className="flex w-full">
+            <ChatClient></ChatClient>
           </div>
         </div>
       ) : (
