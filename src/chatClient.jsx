@@ -85,12 +85,13 @@ const headers = {
 
 const headersCors = {
   "Content-Type": "application/json",
-  "api-key": azureApiKey,
+  "Access-Control-Allow-Origin'": "*",
+  cors: "no-cors",
 };
 
 const userName = localStorage.getItem("userName");
 
-const chatClient = ({setSessionData, session}) => {
+const chatClient = ({ setSessionData, session }) => {
   const [loading, setLoading] = useState(true);
   const [searchItem, setSearchItem] = useState("");
   const [messages, setMessages] = useState([]);
@@ -112,7 +113,7 @@ const chatClient = ({setSessionData, session}) => {
           setUserData(e);
           // Ensure messages is initialized as an array, even if there are no questions
           setMessages(e.sessions[0]?.questions || []);
-          setSessionData(e.sessions)
+          setSessionData(e.sessions);
         }
       });
 
@@ -219,50 +220,43 @@ const chatClient = ({setSessionData, session}) => {
    */
   async function getResponse(endpoint, requestData, headers) {
     let output = "";
-    if(selectAssistant == "0")
-    {
+    console.log(requestData);
+    if (selectAssistant == "0") {
       let res = await axios
-      .post(import.meta.env.VITE_WRITING_ASST, requestData)
-      .then((response) => {
-        const data = response.data;
-        data &&
-          data.choices.map((e) => {
-            output = e.message.content;
-          });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-    }
-    else if(selectAssistant == "1")
-    {
+        .post(import.meta.env.VITE_WRITING_ASST, requestData.messages, {
+          headersCors,
+        })
+        .then((response) => {
+          output = response.data.content;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    } else if (selectAssistant == "1") {
       let res = await axios
-      .post(import.meta.env.VITE_KNOWLEDGE_ASST, requestData)
-      .then((response) => {
-        const data = response.data;
-        console.log(response)
-        data &&
-          data.choices.map((e) => {
-            output = e.message.content;
-          });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-    }
-    else{
+        .post(import.meta.env.VITE_KNOWLEDGE_ASST, requestData.messages, {
+          headersCors,
+        })
+        .then((response) => {
+          const data = response.data;
+          output = response.data.content;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    } else {
       let res = await axios
-      .post(endpoint, requestData, { headers })
-      .then((response) => {
-        const data = response.data;
-        data &&
-          data.choices.map((e) => {
-            output = e.message.content;
-          });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+        .post(endpoint, requestData, { headers })
+        .then((response) => {
+          const data = response.data;
+          data &&
+            data.choices.map((e) => {
+              output = e.message.content;
+            });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
 
     setLoading(false);
@@ -283,12 +277,6 @@ const chatClient = ({setSessionData, session}) => {
             content: searchItem,
           },
         ],
-        max_tokens: 800,
-        temperature: 0.7,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-        top_p: 0.95,
-        stop: null,
       };
       setLoading(true);
       const response = await getResponse(endpoint, requestData, headers);
@@ -301,7 +289,11 @@ const chatClient = ({setSessionData, session}) => {
         response,
         timestamp,
         questionType,
-        selectAssistant==0?"Writing Assistant" : (selectAssistant == 1)? "Knowledge Assistant" : "Simple"
+        selectAssistant == 0
+          ? "Writing Assistant"
+          : selectAssistant == 1
+          ? "Knowledge Assistant"
+          : "Simple"
       );
       setMessages((prevMessages) => [...prevMessages, newMessage]);
       console.log("hi");
@@ -337,20 +329,17 @@ const chatClient = ({setSessionData, session}) => {
     setUserData(userData);
     await container.items.upsert(userData);
   };
-  const handleSessions  = async() =>{
+  const handleSessions = async () => {
     const timestamp = new Date();
-    console.log("hi")
-    userData.sessions.push(new Session(
-      generateRandomSessionId(),
-      userName,
-      [],
-      timestamp
-    ));
+    console.log("hi");
+    userData.sessions.push(
+      new Session(generateRandomSessionId(), userName, [], timestamp)
+    );
     setMessages([]);
     setSessionData(userData.sessions);
-    location.reload()
-    await container.items.upsert(userData)
-  }
+    location.reload();
+    await container.items.upsert(userData);
+  };
   const override = {
     display: "flex",
     borderColor: "white",
@@ -363,7 +352,13 @@ const chatClient = ({setSessionData, session}) => {
         <div className="flex flex-col bg-gray-200 w-full h-full border gap-4 p-12">
           <div className="flex justify-evenly">
             <h1 className="text-[2rem]">Chat Assistant</h1>
-            <button className="p-4 bg-white rounded-xl" onClick={handleSessions}> Add new Session</button>
+            <button
+              className="p-4 bg-white rounded-xl"
+              onClick={handleSessions}
+            >
+              {" "}
+              Add new Session
+            </button>
             <div className="flex gap-4 items-center">
               <p>Choose a assistant:</p>
               <button
@@ -453,7 +448,14 @@ const chatClient = ({setSessionData, session}) => {
               <div ref={messagesEndRef}></div>
             </div>
 
-              <p className="p-4">Switched to : {selectAssistant==0?"Writing Assistant": (selectAssistant ==1?"Knowledge Assistant":"Assistant")}</p>
+            <p className="p-4">
+              Switched to :{" "}
+              {selectAssistant == 0
+                ? "Writing Assistant"
+                : selectAssistant == 1
+                ? "Knowledge Assistant"
+                : "Assistant"}
+            </p>
             <div className="flex h-fit w-full flex-col items-end justify-center">
               <input
                 placeholder="search anything here ..."
