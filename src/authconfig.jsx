@@ -23,16 +23,16 @@ export const msalConfig = {
         }
         switch (level) {
           case LogLevel.Error:
-            console.error(message + " | Error");
+            // console.error(message + " | Error");
             return;
           case LogLevel.Info:
-            console.info(message + " | Info");
+            // console.info(message + " | Info");
             return;
           case LogLevel.Verbose:
-            console.debug(message + " | Verbose");
+            // console.debug(message + " | Verbose");
             return;
           case LogLevel.Warning:
-            console.warn(message + " | Warning");
+            // console.warn(message + " | Warning");
             return;
         }
       },

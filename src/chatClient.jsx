@@ -4,7 +4,9 @@ import axios from "axios";
 import { CosmosClient } from "@azure/cosmos";
 import DotLoader from "react-spinners/DotLoader";
 import RingLoader from "react-spinners/CircleLoader";
-import "./hourglass.css"
+import extractCodeAndText from "./codeExtractor";
+import "./hourglass.css";
+
 class Message {
   constructor(userName, question, answer, timestamp, questiontype, persona) {
     this.userName = userName;
@@ -176,7 +178,7 @@ const chatClient = () => {
     userData,
     session_no
   ) => {
-    console.log(userData);
+    // console.log(userData);
     let currentSession = userData.sessions && userData.sessions[session_no];
     const timestamp = new Date();
     const questionType = "New Chat";
@@ -189,7 +191,7 @@ const chatClient = () => {
       questionType,
       persona
     );
-    console.log(currentSession);
+    // console.log(currentSession);
     currentSession.questions.push(newMessage);
 
     // Update the user data with the modified session
@@ -199,7 +201,7 @@ const chatClient = () => {
     }));
     setMessages(currentSession.questions);
     await container.items.upsert(userData);
-    console.log(userData);
+    // console.log(userData);
   };
 
   const generateRandomSessionId = () => {
@@ -226,14 +228,14 @@ const chatClient = () => {
    * @param {Object{}} headers
    */
   async function getResponse(endpoint, requestData, headers) {
-    let output = "";
+    let output = [];
     if (selectAssistant == "0") {
       let res = await axios
         .post(import.meta.env.VITE_WRITING_ASST, requestData.messages, {
           headersCors,
         })
         .then((response) => {
-          output = response.data.content;
+          output.push(extractCodeAndText(response.data.content));
         })
         .catch((error) => {
           console.error(error);
@@ -244,8 +246,7 @@ const chatClient = () => {
           headersCors,
         })
         .then((response) => {
-          const data = response.data;
-          output = response.data.content;
+          output.push(extractCodeAndText(response.data.content));
         })
         .catch((error) => {
           console.error(error);
@@ -257,7 +258,19 @@ const chatClient = () => {
         })
         .then((response) => {
           const data = response.data;
-          output = response.data.content;
+          output.push(extractCodeAndText(response.data.content));
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    } else if (selectAssistant == "5") {
+      let res = await axios
+        .post(import.meta.env.VITE_MASTER_ASST, requestData.messages, {
+          headersCors,
+        })
+        .then((response) => {
+          const data = response.data;
+          output.push(extractCodeAndText(response.data.content));
         })
         .catch((error) => {
           console.error(error);
@@ -269,14 +282,13 @@ const chatClient = () => {
           const data = response.data;
           data &&
             data.choices.map((e) => {
-              output = e.message.content;
+              output.push(extractCodeAndText(e.message.content));
             });
         })
         .catch((error) => {
           console.error(error);
         });
     }
-
     setLoading(false);
     return output;
   }
@@ -300,7 +312,7 @@ const chatClient = () => {
       const response = await getResponse(endpoint, requestData, headers);
       const timestamp = new Date();
       const questionType = "New Chat";
-      console.log(session_no);
+      // console.log(session_no);
       const newMessage = new Message(
         userName,
         searchItem,
@@ -313,7 +325,7 @@ const chatClient = () => {
           ? "Knowledge Assistant"
           : "Simple"
       );
-      console.log(userData.sessions.length);
+      // console.log(userData.sessions.length);
       if (userData.sessions.length == 0) {
         userData.sessions.push(
           new Session(generateRandomSessionId(), userName, [], timestamp)
@@ -382,11 +394,24 @@ const chatClient = () => {
   }
 
   // console.log(session);
-
+  console.log(messages);
   const override = {
     display: "flex",
     borderColor: "white",
   };
+
+  function convertNewlinesToHTML(inputString) {
+    // Replace '\n' with '<br>'
+    return inputString.replace(/\n/g, '<br>');
+  }
+
+  function removeUrls(inputString) {
+    // Regular expression to match URLs enclosed within parentheses
+    const urlRegex = /\((https?:\/\/[^\s]+)\)/g;
+    // Replace all matched URLs enclosed within parentheses with an empty string
+    return inputString.replace(urlRegex, '');
+}
+
 
   return (
     <div className="flex flex-col h-screen w-full items-center justify-cneter">
@@ -643,6 +668,31 @@ const chatClient = () => {
                     />
                   </svg>
                 </button>
+                <button
+                  className={`p-4 ${
+                    selectAssistant == "5" ? "bg-black text-white" : "bg-white"
+                  } rounded-xl`}
+                  onClick={(e) => {
+                    setSelectAssistant(5);
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    fill="blue"
+                    height="24px"
+                    width="24px"
+                    version="1.1"
+                    id="Capa_1"
+                    viewBox="0 0 410 410"
+                    xml:space="preserve"
+                  >
+                    <g>
+                      <path d="M360.684,250.083H49.318C22.088,250.083,0,272.169,0,299.403c0,27.23,22.088,49.306,49.318,49.306h311.365   c27.243,0,49.316-22.075,49.316-49.306C410,272.169,387.927,250.083,360.684,250.083z M290.461,310.503c-8.283,0-15-6.717-15-15   c0-8.283,6.717-15,15-15s15,6.717,15,15C305.461,303.787,298.744,310.503,290.461,310.503z M341,310.503c-8.283,0-15-6.717-15-15   c0-8.283,6.717-15,15-15s15,6.717,15,15C356,303.787,349.283,310.503,341,310.503z" />
+                      <path d="M360.684,233.861c16.054,0,30.77,5.812,42.177,15.43L317.343,64.195c-0.818-1.77-2.589-2.903-4.539-2.903l-39.147,0   l-125.081,0.001l-51.38-0.001h0c-1.949,0-3.721,1.133-4.539,2.903L7.139,249.292c11.408-9.618,26.124-15.431,42.179-15.431H360.684   z M160.94,115.263c1.555-0.794,3.221-1.197,4.953-1.197c4.119,0,7.841,2.276,9.715,5.941c2.015,3.938,1.46,8.664-1.414,12.038   l17.546,14.976l9.101-22.042c-4.095-1.694-6.741-5.65-6.741-10.078c0-6.009,4.89-10.898,10.901-10.898   c6.01,0,10.899,4.889,10.899,10.898c0,4.428-2.646,8.384-6.74,10.078l9.102,22.042l17.544-14.976   c-2.873-3.374-3.428-8.1-1.412-12.039c1.872-3.663,5.595-5.939,9.714-5.939c1.732,0,3.398,0.402,4.95,1.196   c5.351,2.739,7.479,9.318,4.746,14.667c-2.007,3.923-6.171,6.254-10.584,5.904l-0.003,0l-3.523,43.265   c-0.105,1.297-1.189,2.297-2.492,2.297h-64.404c-1.302,0-2.386-0.999-2.492-2.297l-3.521-43.264   c-4.484,0.355-8.582-1.98-10.588-5.902C153.462,124.58,155.59,118.001,160.94,115.263z" />
+                    </g>
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -704,10 +754,26 @@ const chatClient = () => {
                       <p>
                         <b>Assistant</b>
                       </p>
-                      <div
-                        className="rounded-xl"
-                        dangerouslySetInnerHTML={{ __html: message.answer }}
-                      />
+                      {message.answer.map((e, index) => (
+                        <div key={index}>
+                          {e.map((f, innerIndex) => (
+                            <div key={innerIndex}>
+                              {f.type === "code" ? (
+                                <div>
+                                  <pre className="bg-gray-300 rounded-xl p-12 m-4 text-black ">{f.content}</pre>
+                                </div>
+                              ) : (
+                                <div
+                                  className="rounded-xl text-white p-4"
+                                  dangerouslySetInnerHTML={{
+                                    __html: convertNewlinesToHTML(removeUrls(f.content)),
+                                  }}
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
                     </div>
                   ))}
                 <div ref={messagesEndRef}></div>
@@ -725,6 +791,8 @@ const chatClient = () => {
                     ? "Summary Assistant"
                     : selectAssistant == 4
                     ? "TOT Assistant"
+                    : selectAssistant == 5
+                    ? "Master Assistant"
                     : "Assistant"}
                 </p>
                 {/* {loading && (
