@@ -1,0 +1,43 @@
+
+
+
+.hourglass{
+    display:block;
+    background:#fff;
+    margin:3em auto;
+    width:1em;
+    height:2em;
+    animation:hourglass 1s linear infinite;
+}
+
+.outer{
+    fill:#000;
+}
+
+.middle{
+    fill:#fff;
+}
+
+@keyframes hourglass{
+    0%{
+        transform:rotate(0deg);
+        box-shadow:
+            inset #000 0 -0em 0 0,
+            inset #fff 0 -2em 0 0,
+            inset #000 0 -4em 0 0;
+    }
+    80%{
+        transform:rotate(0deg);
+        box-shadow:
+            inset #000 0 -2em 0 0,
+            inset #fff 0 -2em 0 0,
+            inset #000 0 -2em 0 0;
+    }
+    100%{
+        transform:rotate(180deg);
+        box-shadow:
+            inset #000 0 -2em 0 0,
+            inset #fff 0 -2em 0 0,
+            inset #000 0 -2em 0 0;
+    }
+}
