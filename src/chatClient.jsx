@@ -6,7 +6,7 @@ import DotLoader from "react-spinners/DotLoader";
 import RingLoader from "react-spinners/CircleLoader";
 import extractCodeAndText from "./codeExtractor";
 import "./hourglass.css";
-
+import { CopyToClipboard } from "react-copy-to-clipboard";
 class Message {
   constructor(userName, question, answer, timestamp, questiontype, persona) {
     this.userName = userName;
@@ -95,6 +95,7 @@ const headersCors = {
 const userName = localStorage.getItem("userName");
 
 const chatClient = () => {
+  const [copied, setCopied] = useState(false);
   const [sessionData, setSessionData] = useState([]);
   const [session, setSession] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -202,6 +203,13 @@ const chatClient = () => {
     setMessages(currentSession.questions);
     await container.items.upsert(userData);
     // console.log(userData);
+  };
+
+  const handleCopy = () => {
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000); // Reset the copied state after 2 seconds
   };
 
   const generateRandomSessionId = () => {
@@ -402,16 +410,15 @@ const chatClient = () => {
 
   function convertNewlinesToHTML(inputString) {
     // Replace '\n' with '<br>'
-    return inputString.replace(/\n/g, '<br>');
+    return inputString.replace(/\n/g, "<br>");
   }
 
   function removeUrls(inputString) {
     // Regular expression to match URLs enclosed within parentheses
     const urlRegex = /\((https?:\/\/[^\s]+)\)/g;
     // Replace all matched URLs enclosed within parentheses with an empty string
-    return inputString.replace(urlRegex, '');
-}
-
+    return inputString.replace(urlRegex, "");
+  }
 
   return (
     <div className="flex flex-col h-screen w-full items-center justify-cneter">
@@ -760,13 +767,25 @@ const chatClient = () => {
                             <div key={innerIndex}>
                               {f.type === "code" ? (
                                 <div>
-                                  <pre className="bg-gray-300 rounded-xl p-12 m-4 text-black ">{f.content}</pre>
+                                  <pre className="bg-gray-300 rounded-xl p-12 m-4 text-black ">
+                                    {f.content}
+                                  </pre>
+                                  <CopyToClipboard
+                                    text={f.content}
+                                    onCopy={handleCopy}
+                                  >
+                                    <button>
+                                      {copied ? "Copied!" : "Copy"}
+                                    </button>
+                                  </CopyToClipboard>
                                 </div>
                               ) : (
                                 <div
                                   className="rounded-xl text-white p-4"
                                   dangerouslySetInnerHTML={{
-                                    __html: convertNewlinesToHTML(removeUrls(f.content)),
+                                    __html: convertNewlinesToHTML(
+                                      removeUrls(f.content)
+                                    ),
                                   }}
                                 />
                               )}
