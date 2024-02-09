@@ -4,7 +4,7 @@ function extractCodeAndText(input) {
   let remainingText = input;
 
   // Check if input starts with a code block
-  const codeMatchStart = input.match(codeRegex);
+  const codeMatchStart = input && input.match(codeRegex);
   if (codeMatchStart && codeMatchStart.index === 0) {
     // Extract the code block from the start of the input
     blocks.push({ type: 'code', content: codeMatchStart[1].trim() });
@@ -35,4 +35,4 @@ function extractCodeAndText(input) {
 }
 
 
-export default extractCodeAndText;
+export {extractCodeAndText};
