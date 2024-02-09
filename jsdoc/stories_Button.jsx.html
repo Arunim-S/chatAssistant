@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: App.jsx</title>
+    <title>JSDoc: Source: stories/Button.jsx</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: App.jsx</h1>
+    <h1 class="page-title">Source: stories/Button.jsx</h1>
 
     
 
@@ -26,27 +26,56 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import { useEffect, useState, useRef } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
-import dotenv from "dotenv";
-import { MsalProvider } from "@azure/msal-react";
-import AuthPage from "./authpage";
+            <pre class="prettyprint source linenums"><code>import React from 'react';
+import PropTypes from 'prop-types';
+import './button.css';
 
 /**
- * APP Function
- * @type {Function}
+ * Primary UI component for user interaction
  */
-function App({ instance }) {
+export const Button = ({ primary, backgroundColor, size, label, ...props }) => {
+  const mode = primary ? 'storybook-button--primary' : 'storybook-button--secondary';
   return (
-    &lt;MsalProvider instance={instance}>
-      &lt;AuthPage instance={instance} />
-    &lt;/MsalProvider>
+    &lt;button
+      type="button"
+      className={['storybook-button', `storybook-button--${size}`, mode].join(' ')}
+      style={backgroundColor &amp;&amp; { backgroundColor }}
+      {...props}
+    >
+      {label}
+    &lt;/button>
   );
-}
+};
 
-export default App;
+Button.propTypes = {
+  /**
+   * Is this the principal call to action on the page?
+   */
+  primary: PropTypes.bool,
+  /**
+   * What background color to use
+   */
+  backgroundColor: PropTypes.string,
+  /**
+   * How large should the button be?
+   */
+  size: PropTypes.oneOf(['small', 'medium', 'large']),
+  /**
+   * Button contents
+   */
+  label: PropTypes.string.isRequired,
+  /**
+   * Optional click handler
+   */
+  onClick: PropTypes.func,
+};
+
+Button.defaultProps = {
+  backgroundColor: null,
+  primary: false,
+  size: 'medium',
+  onClick: undefined,
+};
 </code></pre>
         </article>
     </section>
