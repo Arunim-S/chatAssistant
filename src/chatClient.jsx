@@ -59,10 +59,7 @@ const container = clientCosmos.database("Testing_Purpose").container("test");
 const userName = localStorage.getItem("userName");
 
 const chatClient = () => {
-  let [messages, setMessages] = useState([]);
-  let session_no = session;
-  const messagesEndRef = useRef(null);
-
+  
   const [copied, setCopied] = useState(false);
   const [userData, setUserData] = useState([]);
   const [sessionData, setSessionData] = useState([]);
@@ -71,7 +68,10 @@ const chatClient = () => {
   const [searchItem, setSearchItem] = useState("");
   const [selectAssistant, setSelectAssistant] = useState(5);
   const [deletingSesstion, setDeletingSession] = useState(false);
-
+  
+  let [messages, setMessages] = useState([]);
+  let session_no = session;
+  const messagesEndRef = useRef(null);
   /**
    *  Get Messages from the data base and create a user if there is no user present
    *  @type {Function}
@@ -316,7 +316,7 @@ const chatClient = () => {
   return (
     <div className="flex flex-col h-screen w-full items-center justify-cneter">
       <div className="flex w-full h-full">
-        <div className="w-1/6">
+        <div className="w-[20rem]">
           <div className="text-center p-4 gap-2 flex flex-col bg-black text-white w-full h-full">
             <p className="p-2">Chat Sessions</p>
             {sessionData &&
@@ -478,18 +478,18 @@ const chatClient = () => {
                           {e.map((f, innerIndex) => (
                             <div key={innerIndex}>
                               {f.type === "code" ? (
-                                <div>
-                                  <pre className="bg-gray-300 rounded-xl p-12 m-4 text-black ">
-                                    {f.content}
-                                  </pre>
+                                <div className="flex flex-col justify-end w-full">
                                   <CopyToClipboard
                                     text={f.content}
                                     onCopy={handleCopy}
                                   >
-                                    <button>
+                                    <button className="text-right px-8">
                                       {copied ? "Copied!" : "Copy"}
                                     </button>
                                   </CopyToClipboard>
+                                  <pre className="bg-gray-300 rounded-xl p-12 m-4 text-black ">
+                                    {f.content}
+                                  </pre>
                                 </div>
                               ) : (
                                 <div
