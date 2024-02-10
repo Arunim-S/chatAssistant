@@ -38,6 +38,15 @@ class Session {
   }
 }
 
+const assistantButtons = [
+  { id: 0, icon: icons.writingAIcon },
+  { id: 1, icon: icons.knowAssisIcon },
+  { id: 2, icon: icons.grammerAssisIcon },
+  { id: 3, icon: icons.summaryAssisIcon },
+  { id: 4, icon: icons.techAssisIcon },
+  { id: 5, icon: icons.masterAssisIcon },
+];
+
 /**
  * connection string for Cosmos DB
  * @type {string}
@@ -59,7 +68,6 @@ const container = clientCosmos.database("Testing_Purpose").container("test");
 const userName = localStorage.getItem("userName");
 
 const chatClient = () => {
-  
   const [copied, setCopied] = useState(false);
   const [userData, setUserData] = useState([]);
   const [sessionData, setSessionData] = useState([]);
@@ -68,7 +76,7 @@ const chatClient = () => {
   const [searchItem, setSearchItem] = useState("");
   const [selectAssistant, setSelectAssistant] = useState(5);
   const [deletingSesstion, setDeletingSession] = useState(false);
-  
+
   let [messages, setMessages] = useState([]);
   let session_no = session;
   const messagesEndRef = useRef(null);
@@ -293,22 +301,18 @@ const chatClient = () => {
   };
 
   function processText(inputString) {
-    // Convert newlines to HTML <br> tags
     const stringWithBreaks = inputString.replace(/\n/g, "<br>");
-
-    // Remove URLs enclosed in parentheses
     const stringWithoutUrls = stringWithBreaks.replace(
       /\((https?:\/\/[^\s]+)\)/g,
       ""
     );
-
-    // Replace strings wrapped within "**" with heading tags
     const stringWithHeadings = stringWithoutUrls.replace(
       /\*\*(.*?)\*\*/g,
       '<h1 style="font-size: 1.5rem">$1</h1>'
     );
-
-    return stringWithHeadings;
+    const boldText = stringWithHeadings.replace(/`([^`]+)`/g, "<b>$1</b>");
+    console.log(boldText)
+    return boldText;
   }
 
   // console.log(sessionData)
@@ -371,66 +375,21 @@ const chatClient = () => {
               </div>
               <div className="flex gap-4 items-center">
                 <p>Choose a assistant:</p>
-                <button
-                  className={`p-4 ${
-                    selectAssistant == "0" ? "bg-black text-white" : "bg-white"
-                  } rounded-xl`}
-                  onClick={(e) => {
-                    setSelectAssistant(0);
-                  }}
-                >
-                  {icons.writingAIcon}
-                </button>
-                <button
-                  className={`p-4 ${
-                    selectAssistant == "1" ? "bg-black text-white" : "bg-white"
-                  } rounded-xl`}
-                  onClick={(e) => {
-                    setSelectAssistant(1);
-                  }}
-                >
-                  {icons.knowAssisIcon}
-                </button>
-                <button
-                  className={`p-4 ${
-                    selectAssistant == "2" ? "bg-black text-white" : "bg-white"
-                  } rounded-xl`}
-                  onClick={(e) => {
-                    setSelectAssistant(2);
-                  }}
-                >
-                  {icons.grammerAssisIcon}
-                </button>
-                <button
-                  className={`p-4 ${
-                    selectAssistant == "3" ? "bg-black text-white" : "bg-white"
-                  } rounded-xl`}
-                  onClick={(e) => {
-                    setSelectAssistant(3);
-                  }}
-                >
-                  {icons.summaryAssisIcon}
-                </button>
-                <button
-                  className={`p-4 ${
-                    selectAssistant == "4" ? "bg-black text-white" : "bg-white"
-                  } rounded-xl`}
-                  onClick={(e) => {
-                    setSelectAssistant(4);
-                  }}
-                >
-                  {icons.techAssisIcon}
-                </button>
-                <button
-                  className={`p-4 ${
-                    selectAssistant == "5" ? "bg-black text-white" : "bg-white"
-                  } rounded-xl`}
-                  onClick={(e) => {
-                    setSelectAssistant(5);
-                  }}
-                >
-                  {icons.masterAssisIcon}
-                </button>
+                {assistantButtons.map((assistant) => (
+                  <button
+                    key={assistant.id}
+                    className={`p-4 ${
+                      selectAssistant === assistant.id
+                        ? "bg-black text-white"
+                        : "bg-white"
+                    } rounded-xl`}
+                    onClick={() => {
+                      setSelectAssistant(assistant.id);
+                    }}
+                  >
+                    {assistant.icon}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -493,7 +452,7 @@ const chatClient = () => {
                                 </div>
                               ) : (
                                 <div
-                                  className="rounded-xl text-white"
+                                  className=" text-white"
                                   dangerouslySetInnerHTML={{
                                     __html: processText(f.content),
                                   }}
