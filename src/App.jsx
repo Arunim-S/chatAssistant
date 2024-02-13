@@ -4,7 +4,7 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 import dotenv from "dotenv";
 import { MsalProvider } from "@azure/msal-react";
-import AuthPage from "./authpage";
+import AuthPage from "./components/Auth/authpage";
 
 /**
  * APP Function

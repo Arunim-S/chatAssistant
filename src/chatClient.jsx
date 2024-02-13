@@ -1,14 +1,15 @@
 import { useEffect, useState, useRef } from "react";
-import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
-import axios from "axios";
 import { CosmosClient } from "@azure/cosmos";
 import DotLoader from "react-spinners/DotLoader";
-import RingLoader from "react-spinners/CircleLoader";
-import "./hourglass.css";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { getResponse } from "./getResponse";
 import icons from "./icons";
-
+import Sidebar from "./components/Sidebar/sidebar";
+import Header from "./components/Header/Header";
+/**
+ * Message Class
+ * @type {Class}
+ */
 class Message {
   constructor(userName, question, answer, timestamp, questiontype, persona) {
     this.userName = userName;
@@ -20,6 +21,10 @@ class Message {
   }
 }
 
+/**
+ * User Data Class
+ * @type {Class}
+ */
 class UserData {
   constructor(userId, userName, sessions, timestamp) {
     this.userId = userId;
@@ -29,6 +34,10 @@ class UserData {
   }
 }
 
+/**
+ * Session Class
+ * @type {Class}
+ */
 class Session {
   constructor(sessionId, userName, questions, timestamp) {
     this.sessionId = sessionId;
@@ -38,6 +47,10 @@ class Session {
   }
 }
 
+/**
+ * Configuration of Icons used in buttons
+ * @type {Object}
+ */
 const assistantButtons = [
   { id: 0, icon: icons.writingAIcon },
   { id: 1, icon: icons.knowAssisIcon },
@@ -49,22 +62,26 @@ const assistantButtons = [
 
 /**
  * connection string for Cosmos DB
- * @type {string}
+ * @type {String}
  */
 const connection_string = import.meta.env.VITE_COSMOS_CONNECTION_STRING;
 
 /**
  * client for database
- * @type {object}
+ * @type {Object}
  */
 const clientCosmos = new CosmosClient(connection_string);
 
 /**
  * container to store messages
- * @type {Object{}}
+ * @type {Object}
  */
 const container = clientCosmos.database("Testing_Purpose").container("test");
 
+/**
+ * Username stored in the localstorage
+ * @type {String}
+ */
 const userName = localStorage.getItem("userName");
 
 const chatClient = () => {
@@ -76,10 +93,15 @@ const chatClient = () => {
   const [searchItem, setSearchItem] = useState("");
   const [selectAssistant, setSelectAssistant] = useState(5);
   const [deletingSesstion, setDeletingSession] = useState(false);
-
   let [messages, setMessages] = useState([]);
   let session_no = session;
+
+  /**
+   * Message reference
+   * @type {Function}
+   */
   const messagesEndRef = useRef(null);
+
   /**
    *  Get Messages from the data base and create a user if there is no user present
    *  @type {Function}
@@ -173,6 +195,10 @@ const chatClient = () => {
     await container.items.upsert(userData);
   };
 
+  /**
+   * Handle the message copied function
+   * @type {Function}
+   */
   const handleCopy = () => {
     setCopied(true);
     setTimeout(() => {
@@ -180,6 +206,10 @@ const chatClient = () => {
     }, 2000);
   };
 
+  /**
+   * This function generates the random session id string
+   * @type {Function}
+   */
   const generateRandomSessionId = () => {
     return Math.random().toString(36).substr(2, 8);
   };
@@ -251,8 +281,9 @@ const chatClient = () => {
       console.error(err);
     }
   };
+
   /**
-   * Handle Search
+   * Handle Delete Message
    * @param {string} index
    * @type {Function}
    */
@@ -267,6 +298,11 @@ const chatClient = () => {
     await container.items.upsert(userData);
   };
 
+  /**
+   * Handle Delete Session
+   * @param {string} index
+   * @type {Function}
+   */
   const handleDeleteSession = async (index) => {
     const currentSession = userData.sessions;
     currentSession.splice(index, 1);
@@ -281,6 +317,10 @@ const chatClient = () => {
     await container.items.upsert(userData);
   };
 
+  /**
+   * Handle Create Session
+   * @type {Function}
+   */
   async function handleSessions() {
     const timestamp = new Date();
     userData.sessions.push(
@@ -293,13 +333,19 @@ const chatClient = () => {
     await container.items.upsert(userData);
   }
 
-  // console.log(session);
-  // console.log(messages);
+  /**
+   * Override CSS for Loader
+   * @type {Object}
+   */
   const override = {
     display: "flex",
     borderColor: "white",
   };
 
+  /**
+   * This function process the text to fomrat the message to be rendered on the screen
+   * @type {Function}
+   */
   function processText(inputString) {
     const stringWithBreaks = inputString.replace(/\n/g, "<br>");
     const stringWithoutUrls = stringWithBreaks.replace(
@@ -311,7 +357,7 @@ const chatClient = () => {
       '<h1 style="font-size: 1.5rem">$1</h1>'
     );
     const boldText = stringWithHeadings.replace(/`([^`]+)`/g, "<b>$1</b>");
-    console.log(boldText)
+    console.log(boldText);
     return boldText;
   }
 
@@ -321,27 +367,7 @@ const chatClient = () => {
     <div className="flex flex-col h-screen w-full items-center justify-cneter">
       <div className="flex w-full h-full">
         <div className="w-[20rem]">
-          <div className="text-center p-4 gap-2 flex flex-col bg-black text-white w-full h-full">
-            <p className="p-2">Chat Sessions</p>
-            {sessionData &&
-              sessionData.map((session, index) => (
-                <button
-                  onClick={(e) => {
-                    setSession(index);
-                  }}
-                  key={index}
-                  className={`${
-                    session_no == index
-                      ? "bg-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis text-white"
-                      : "bg-white whitespace-nowrap overflow-hidden overflow-ellipsis text-black"
-                  }  p-4  w-full rounded-xl`}
-                >
-                  {session.questions[session.questions.length - 1]
-                    ? session.questions[session.questions.length - 1].question
-                    : "Empty Session"}
-                </button>
-              ))}
-          </div>
+          <Sidebar session_no={session_no} sessionData={sessionData} setSession={setSession} ></Sidebar>
         </div>
         {deletingSesstion == true ? (
           <div className="w-full h-full flex absolute items-center justify-center z-50">
@@ -356,58 +382,9 @@ const chatClient = () => {
           </div>
         ) : (
           <div className="flex flex-col bg-gray-200 w-full h-full border gap-4 p-12">
-            <div className="flex justify-around">
-              <div className="flex gap-4">
-                <button
-                  className="p-4 bg-white rounded-xl"
-                  onClick={handleSessions}
-                >
-                  {icons.sessionIcon}
-                </button>
-                <button
-                  className="flex items-center justify-center gap-4 bg-red-300 rounded-xl px-4"
-                  onClick={(e) => {
-                    handleDeleteSession(session_no);
-                  }}
-                >
-                  {icons.deleteIcon}
-                </button>
-              </div>
-              <div className="flex gap-4 items-center">
-                <p>Choose a assistant:</p>
-                {assistantButtons.map((assistant) => (
-                  <button
-                    key={assistant.id}
-                    className={`p-4 ${
-                      selectAssistant === assistant.id
-                        ? "bg-black text-white"
-                        : "bg-white"
-                    } rounded-xl`}
-                    onClick={() => {
-                      setSelectAssistant(assistant.id);
-                    }}
-                  >
-                    {assistant.icon}
-                  </button>
-                ))}
-              </div>
-            </div>
-
+            <Header icons={icons} handleSessions={handleSessions} handleDeleteSession={handleDeleteSession} assistantButtons={assistantButtons} ></Header>
             <div className="gap-4 h-full flex flex-col">
               <div className="relative flex flex-col w-full h-[65vh] rounded-[1rem] overflow-y-scroll p-4">
-                {/* {loading && (
-                  <div className="flex absolute w-full mx-auto h-full items-center justify-center z-50">
-                    <DotLoader
-                      color="#FCA5A5"
-                      loading={loading}
-                      cssOverride={override}
-                      size={150}
-                      aria-label="Loading Spinner"
-                      data-testid="loader"
-                    />
-                  </div>
-                )} */}
-
                 {messages &&
                   messages.map((message, index) => (
                     <div
