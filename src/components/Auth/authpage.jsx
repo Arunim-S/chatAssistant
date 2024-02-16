@@ -1,8 +1,9 @@
 // AuthPage.jsx
 import React, { useState, useEffect } from "react";
-import ChatClient from "../../chatClient";
+import ChatClient from "../ChatScreen/chatClient";
 
 const AuthPage = ({ instance }) => {
+  console.log(instance)
   const [isAuthenticated, setIsAuthenticated] = useState(
     localStorage.getItem("isAuthenticated") === "true"
   );

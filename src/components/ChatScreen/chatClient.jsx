@@ -2,10 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { CosmosClient } from "@azure/cosmos";
 import DotLoader from "react-spinners/DotLoader";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { getResponse } from "./getResponse";
-import icons from "./icons";
-import Sidebar from "./components/Sidebar/sidebar";
-import Header from "./components/Header/Header";
+import { getResponse } from "../../getResponse";
+import icons from "../../icons";
+import Sidebar from "../Sidebar/sidebar";
+import Header from "../Header/Header";
+import "../../hourglass.css";
 /**
  * Message Class
  * @type {Class}
@@ -48,19 +49,6 @@ class Session {
 }
 
 /**
- * Configuration of Icons used in buttons
- * @type {Object}
- */
-const assistantButtons = [
-  { id: 0, icon: icons.writingAIcon },
-  { id: 1, icon: icons.knowAssisIcon },
-  { id: 2, icon: icons.grammerAssisIcon },
-  { id: 3, icon: icons.summaryAssisIcon },
-  { id: 4, icon: icons.techAssisIcon },
-  { id: 5, icon: icons.masterAssisIcon },
-];
-
-/**
  * connection string for Cosmos DB
  * @type {String}
  */
@@ -91,8 +79,8 @@ const chatClient = () => {
   const [session, setSession] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchItem, setSearchItem] = useState("");
-  const [selectAssistant, setSelectAssistant] = useState(5);
   const [deletingSesstion, setDeletingSession] = useState(false);
+  const [selectAssistant, setSelectAssistant] = useState(5);
   let [messages, setMessages] = useState([]);
   let session_no = session;
 
@@ -192,6 +180,7 @@ const chatClient = () => {
       sessions: [currentSession],
     }));
     setMessages(currentSession.questions);
+    console.log(messages);
     await container.items.upsert(userData);
   };
 
@@ -326,10 +315,10 @@ const chatClient = () => {
     userData.sessions.push(
       new Session(generateRandomSessionId(), userName, [], timestamp)
     );
-    setMessages([]);
-    setSessionData(userData.sessions);
     // location.reload();
     setUserData(userData);
+    setSessionData(userData.sessions);
+    setMessages([]);
     await container.items.upsert(userData);
   }
 
@@ -357,7 +346,7 @@ const chatClient = () => {
       '<h1 style="font-size: 1.5rem">$1</h1>'
     );
     const boldText = stringWithHeadings.replace(/`([^`]+)`/g, "<b>$1</b>");
-    console.log(boldText);
+    // console.log(boldText);
     return boldText;
   }
 
@@ -366,8 +355,12 @@ const chatClient = () => {
   return (
     <div className="flex flex-col h-screen w-full items-center justify-cneter">
       <div className="flex w-full h-full">
-        <div className="w-[20rem]">
-          <Sidebar session_no={session_no} sessionData={sessionData} setSession={setSession} ></Sidebar>
+        <div className="w-[24rem]">
+          <Sidebar
+            session_no={session_no}
+            sessionData={sessionData}
+            setSession={setSession}
+          ></Sidebar>
         </div>
         {deletingSesstion == true ? (
           <div className="w-full h-full flex absolute items-center justify-center z-50">
@@ -382,7 +375,13 @@ const chatClient = () => {
           </div>
         ) : (
           <div className="flex flex-col bg-gray-200 w-full h-full border gap-4 p-12">
-            <Header icons={icons} handleSessions={handleSessions} handleDeleteSession={handleDeleteSession} assistantButtons={assistantButtons} ></Header>
+            <Header
+              handleSessions={handleSessions}
+              handleDeleteSession={handleDeleteSession}
+              session_no={session_no}
+              selectAssistant={selectAssistant}
+              setSelectAssistant={setSelectAssistant}
+            ></Header>
             <div className="gap-4 h-full flex flex-col">
               <div className="relative flex flex-col w-full h-[65vh] rounded-[1rem] overflow-y-scroll p-4">
                 {messages &&
@@ -494,7 +493,7 @@ const chatClient = () => {
                       </svg>
                     </div>
                   ) : (
-                    <div className="wrapper">{icons.hourGlass}</div>
+                    <div className="hourglass">{icons.hourGlass}</div>
                   )}
                 </button>
               </div>
