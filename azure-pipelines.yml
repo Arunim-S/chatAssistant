@@ -8,7 +8,8 @@ steps:
 - task: NodeTool@0
   inputs:
     versionSpec: '18.x'
-  displayName: 'Install Node.js'
+    checkLatest: true
+  displayName: 'Install Node.js 18.x'
 
 - script: npm install
   displayName: 'Install Dependencies'
@@ -26,6 +27,3 @@ steps:
   inputs:
     pathtoPublish: '$(Build.ArtifactStagingDirectory)'
     artifactName: 'drop'
-
-# Add tasks to deploy the artifacts to your hosting platform (e.g., Azure App Service, Azure Static Web Apps, etc.)
-# Refer to the documentation of your hosting platform for specific deployment steps.
