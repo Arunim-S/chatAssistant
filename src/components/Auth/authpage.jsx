@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import ChatClient from "../ChatScreen/chatClient";
 
 const AuthPage = ({ instance }) => {
-  console.log(instance)
+  // console.log(instance)
   const [isAuthenticated, setIsAuthenticated] = useState(
     localStorage.getItem("isAuthenticated") === "true"
   );
@@ -46,7 +46,7 @@ const AuthPage = ({ instance }) => {
       {isAuthenticated ? (
         <div className="flex flex-row justify-end w-full h-full">
           {/* auth */}
-          <div className="absolute flex w-full justify-end px-20 items-center z-50 text-black">
+          <div className="absolute flex w-full justify-end pr-12 items-center z-50 text-black">
             <div className="flex flex-row h-12 items-center justify-center gap-3">
               <h1 className="flex text-center">
                 {isAuthenticated

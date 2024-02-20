@@ -3,10 +3,17 @@ import Button from "./Button";
 
 export default {
     title: 'form/Button',
-    component: Button
+    component: Button,
+    argTypes: {handleClick: {action: "handleClick"}},
 }
 
-export const Primary = ()=><Button variant="primary">Primary</Button>
-export const Secondary = ()=><Button variant="secondary">Secondary</Button>
-export const Success = ()=><Button variant="success">Success</Button>
-export const Danger = ()=><Button variant="danger">Danger</Button>
+const Template = args => <Button {...args}/>
+
+export const Primary = Template.bind({})
+Primary.args={
+    backgroundColor: 'green',
+    label: 'Log out',
+    size: "md",
+    fontSize: "1rem",
+    borderRadius: "1rem"
+}

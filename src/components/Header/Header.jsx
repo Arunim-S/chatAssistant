@@ -20,8 +20,7 @@ const Header = ({
     { id: 5, icon: icons.masterAssisIcon },
   ];
   return (
-    <div className="flex justify-around bg-gray-200">
-      <div className="flex gap-4 items-center">
+    <div className="flex pl-6 pr-12 justify-between w-full bg-gray-200">
         <div className="flex gap-4">
           <button className="p-4 bg-white rounded-xl" onClick={handleSessions}>
             {icons.sessionIcon}
@@ -35,6 +34,7 @@ const Header = ({
             {icons.deleteIcon}
           </button>
         </div>
+        <div className="flex items-center gap-4">
         <p>Choose an assistant:</p>
         {assistantButtons &&
           assistantButtons.map((assistant) => (
@@ -52,8 +52,8 @@ const Header = ({
               {assistant.icon}
             </button>
           ))}
+        </div>
       </div>
-    </div>
   );
 };
 

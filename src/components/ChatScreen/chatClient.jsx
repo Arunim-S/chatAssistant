@@ -82,6 +82,7 @@ const chatClient = () => {
   const [deletingSesstion, setDeletingSession] = useState(false);
   const [selectAssistant, setSelectAssistant] = useState(5);
   let [messages, setMessages] = useState([]);
+  let [open, setOpen] = useState(true);
   let session_no = session;
 
   /**
@@ -350,18 +351,28 @@ const chatClient = () => {
     return boldText;
   }
 
-  // console.log(sessionData)
+  if(window.innerWidth<1024)open=false;
+
+  console.log(open)
 
   return (
     <div className="flex flex-col h-screen w-full items-center justify-cneter">
-      <div className="flex w-full h-full">
-        <div className="w-[24rem]">
+      <div className="bg-gray-200 flex w-full h-full">
+      {open&&
+        <div className="flex lg:w-[20rem]">
           <Sidebar
             session_no={session_no}
             sessionData={sessionData}
             setSession={setSession}
+            open={open}
           ></Sidebar>
         </div>
+}
+        {open?
+        <button onClick={(e)=>{setOpen(false)}} className="w-10 text-red-400 text-2xl"><b>{"<"}</b></button>
+        :
+        <button onClick={(e)=>{setOpen(true)}} className="w-10 text-red-400 text-2xl"><b>{">"}</b></button>
+        }
         {deletingSesstion == true ? (
           <div className="w-full h-full flex absolute items-center justify-center z-50">
             <DotLoader
@@ -374,7 +385,7 @@ const chatClient = () => {
             />
           </div>
         ) : (
-          <div className="flex flex-col bg-gray-200 w-full h-full border gap-4 p-12">
+          <div className="flex flex-col bg-gray-200 w-full h-full border gap-4 pt-12 px-12">
             <Header
               handleSessions={handleSessions}
               handleDeleteSession={handleDeleteSession}
@@ -383,6 +394,7 @@ const chatClient = () => {
               setSelectAssistant={setSelectAssistant}
             ></Header>
             <div className="gap-4 h-full flex flex-col">
+              
               <div className="relative flex flex-col w-full h-[65vh] rounded-[1rem] overflow-y-scroll p-4">
                 {messages &&
                   messages.map((message, index) => (
@@ -462,11 +474,11 @@ const chatClient = () => {
               </div>
 
               <div className="flex h-fit w-full flex-col items-end justify-center">
-                <input
+                <textarea
                   placeholder="search anything here ..."
                   onChange={handleSearchItem}
                   value={searchItem}
-                  className="p-4 relative shadow-lg rounded-[2rem] w-full"
+                  className="px-8 py-4 relative shadow-lg h-[12vh] rounded-[1rem] w-full"
                   id="search"
                 />
                 <button

@@ -1,14 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import "./sidebar.css";
 
-const Sidebar = ({ session_no, sessionData, setSession }) => {
+const Sidebar = ({ session_no, sessionData, setSession, open}) => {
   // Ensure sessionData is an array before mapping over it
   // if (!Array.isArray(sessionData)) {
   //   return <div>No sessions available</div>;
   // }
-
   return (
-    <div className="text-center p-4 gap-2 flex flex-col bg-black text-white w-full h-full">
+    <div className={`text-center p-4 gap-2 ${open? "hidden lg:flex" : "hidden" } flex-col bg-black text-white w-full h-full lg:flex`}>
       <p className="p-2">Chat Sessions</p>
       {sessionData &&
         sessionData.map((session, index) => (
