@@ -478,7 +478,7 @@ const chatClient = () => {
                   placeholder="search anything here ..."
                   onChange={handleSearchItem}
                   value={searchItem}
-                  className="px-8 py-4 relative shadow-lg h-[12vh] rounded-[1rem] w-full"
+                  className="pl-8 pr-16 py-4 relative shadow-lg h-[12vh] rounded-[1rem] w-full"
                   id="search"
                 />
                 <button
