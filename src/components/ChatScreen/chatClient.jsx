@@ -355,6 +355,16 @@ const chatClient = () => {
 
   console.log(open)
 
+  // Get the input field
+  var input = document.getElementById("search");
+
+  input&&input.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      document.getElementById("btn").click();
+    }
+  });
+
   return (
     <div className="flex flex-col h-screen w-full items-center justify-cneter">
       <div className="bg-gray-200 flex w-full h-full">
@@ -485,6 +495,8 @@ const chatClient = () => {
                   className="absolute px-8"
                   onClick={handleSearch}
                   type="submit"
+                  id="btn"
+                  alt="button submit"
                 >
                   {!loading ? (
                     <div className="hover:translate-x-2 hover:ease-in-out hover:transition-all">
